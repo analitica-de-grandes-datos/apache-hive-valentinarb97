@@ -45,3 +45,19 @@ LOAD DATA LOCAL INPATH 'data1.csv' INTO TABLE tbl1;
     >>> Escriba su respuesta a partir de este punto <<<
 */
 
+CREATE TABLE datos_final
+AS
+    SELECT t0.anio, t0.c5,count(*) FROM (
+
+        SELECT year(c4) as anio,c5 FROM tbl0 lateral view explode(c5) tbl0 as c5
+
+    ) t0 group by t0.anio, t0.c5 ;
+
+
+!hdfs dfs -rm -r -f '/output' ;
+
+INSERT OVERWRITE DIRECTORY '/output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+    SELECT * FROM datos_final;
+
+!hdfs dfs -copyToLocal /output output ;

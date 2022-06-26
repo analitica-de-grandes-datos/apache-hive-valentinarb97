@@ -46,3 +46,32 @@ LOAD DATA LOCAL INPATH 'data1.csv' INTO TABLE tbl1;
     >>> Escriba su respuesta a partir de este punto <<<
 */
 
+!hdfs dfs -rm -r -f /output;
+DROP TABLE IF EXISTS datos_final;
+
+CREATE TABLE datos_final
+AS
+    SELECT
+    t0.c1,
+    t0.c2,
+    t1.c4_2
+FROM
+    tbl0 t0
+JOIN (
+       SELECT
+            c1, c4_1, c4_2
+            FROM
+            tbl1 
+            LATERAL VIEW explode(c4) tbl1 AS c4_1, c4_2
+    ) t1
+ON
+    (t0.c1 = t1.c1 AND t0.c2 = t1.c4_1);
+
+INSERT OVERWRITE DIRECTORY '/output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+SELECT
+    *
+FROM
+    datos_final;
+
+!hdfs dfs -copyToLocal /output  output;

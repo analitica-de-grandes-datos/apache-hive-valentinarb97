@@ -45,4 +45,19 @@ LOAD DATA LOCAL INPATH 'data1.csv' INTO TABLE tbl1;
 /*
     >>> Escriba su respuesta a partir de este punto <<<
 */
+!hdfs dfs -rm -r -f /output;
+
+CREATE TABLE datos_final
+AS
+    select
+    c2, concat_ws(':',COLLECT_LIST(cast(c1 as STRING))) c1
+    from tbl0
+    group by c2
+;
+
+INSERT OVERWRITE DIRECTORY '/output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+    SELECT * FROM datos_final;
+
+!hdfs dfs -copyToLocal /output output ;
 

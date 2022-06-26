@@ -30,3 +30,31 @@ LOAD DATA LOCAL INPATH 'data.tsv' INTO TABLE t0;
     >>> Escriba su respuesta a partir de este punto <<<
 */
 
+!hdfs dfs -rm -r -f /output;
+
+drop table if exists datos_final;
+
+CREATE TABLE datos_final
+AS
+SELECT clave, count(*) 
+    FROM (
+        SELECT
+            clave
+        FROM
+            t0
+        LATERAL VIEW
+            explode(c3) t0 AS clave, valor
+        ) t0
+    GROUP BY clave
+    ORDER BY clave
+;
+
+
+INSERT OVERWRITE DIRECTORY '/output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+SELECT
+    *
+FROM
+    datos_final;
+
+!hdfs dfs -copyToLocal /output  output;

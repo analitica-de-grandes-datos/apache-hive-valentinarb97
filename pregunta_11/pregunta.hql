@@ -28,4 +28,19 @@ LOAD DATA LOCAL INPATH 'data.tsv' INTO TABLE t0;
 /*
     >>> Escriba su respuesta a partir de este punto <<<
 */
+!hdfs dfs -rm -r -f /output;
 
+drop table if exists datos_final;
+
+CREATE TABLE datos_final
+AS SELECT c1, size(c2), size(c3) FROM t0;
+
+
+INSERT OVERWRITE DIRECTORY '/output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+SELECT
+    *
+FROM
+    datos_final;
+
+!hdfs dfs -copyToLocal /output  output;
