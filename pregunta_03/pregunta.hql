@@ -13,19 +13,8 @@ Escriba el resultado a la carpeta `output` de directorio de trabajo.
 
         >>> Escriba su respuesta a partir de este punto <<<
 */
-!hdfs dfs -rm -r -f /output;
-DROP TABLE IF EXISTS data;
-CREATE TABLE data (
-    letra STRING,
-    fecha DATE,
-    valor INT)
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY '\t';
-LOAD DATA LOCAL INPATH './data.tsv' OVERWRITE 
-INTO TABLE data;
-INSERT OVERWRITE DIRECTORY 'output'
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-SELECT DISTINCT valor FROM data ORDER BY valor LIMIT 5;
-!hdfs dfs -copyToLocal /output  output;
-
+CREATE TABLE data (letra STRING, fecha DATE, valor INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("skip.header.line.count"="0");
+LOAD DATA LOCAL INPATH "data.tsv" OVERWRITE INTO TABLE data;
+CREATE TABLE word_counts9 AS SELECT valor, count(1) FROM data GROUP BY valor order by valor;
+INSERT OVERWRITE LOCAL DIRECTORY './output' ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' SELECT valor FROM word_counts9 order by valor limit 5;
 
