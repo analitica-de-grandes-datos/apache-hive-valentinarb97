@@ -45,4 +45,7 @@ LOAD DATA LOCAL INPATH 'data1.csv' INTO TABLE tbl1;
 /*
     >>> Escriba su respuesta a partir de este punto <<<
 */
+INSERT OVERWRITE DIRECTORY 'output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+SELECT c2, concat_ws(':', collect_set(cast(c1 as string))) FROM (SELECT c2, c1 FROM tbl0 ORDER BY c1) tabla GROUP BY c2;
 
