@@ -1,16 +1,15 @@
-/*
-
+/* 
 Pregunta
 ===========================================================================
 
-Escriba una consulta que retorne para cada valor único de la columna `t0.c2`, 
-los valores correspondientes de la columna `t0.c1`. 
+Escriba una consulta que retorne los valores únicos de la columna `t0.c5` 
+(ordenados). 
 
 Apache Hive se ejecutará en modo local (sin HDFS).
 
 Escriba el resultado a la carpeta `output` de directorio de trabajo.
-
 */
+
 
 DROP TABLE IF EXISTS tbl0;
 CREATE TABLE tbl0 (
@@ -45,7 +44,5 @@ LOAD DATA LOCAL INPATH 'data1.csv' INTO TABLE tbl1;
 /*
     >>> Escriba su respuesta a partir de este punto <<<
 */
-INSERT OVERWRITE DIRECTORY 'output'
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-SELECT c2, concat_ws(':', collect_set(cast(c1 as string))) FROM (SELECT c2, c1 FROM tbl0 ORDER BY c1) tabla GROUP BY c2;
-
+CREATE TABLE tbl2 AS SELECT EXPLODE(c5) as c5 from tbl0;
+INSERT OVERWRITE LOCAL DIRECTORY './output' ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' SELECT DISTINCT(c5) FROM tbl2;

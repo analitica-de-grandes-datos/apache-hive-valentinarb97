@@ -32,26 +32,21 @@ LOAD DATA LOCAL INPATH 'data.tsv' INTO TABLE t0;
 /*
     >>> Escriba su respuesta a partir de este punto <<<
 */
-DROP TABLE IF EXISTS datos_final;
-CREATE TABLE datos_final
-AS
-    SELECT c2_clave, c3_clave, count(*) 
-    FROM (
-        SELECT c2_clave, c3_clave
-        FROM t0
-        LATERAL VIEW explode(c2) t0 AS c2_clave
-        LATERAL VIEW explode(c3) t0 AS c3_clave, c3_valor
-        ) t0
-    GROUP BY c2_clave, c3_clave
-    ORDER BY c2_clave, c3_clave;
-
-!hdfs dfs -rm -r -f /output;
-
-INSERT OVERWRITE DIRECTORY '/output'
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-SELECT
-    *
-FROM
-    datos_final;
-
-!hdfs dfs -copyToLocal /output  output;
+DROP TABLE IF EXISTS tbl0; 
+DROP TABLE IF EXISTS datos; 
+CREATE TABLE tbl0 ( 
+    c1 STRING, 
+    c2 ARRAY<CHAR(1)>,  
+    c3 MAP<STRING, INT> 
+    ) 
+    ROW FORMAT DELIMITED  
+        FIELDS TERMINATED BY '\t' 
+        COLLECTION ITEMS TERMINATED BY ',' 
+        MAP KEYS TERMINATED BY '#' 
+        LINES TERMINATED BY '\n'; 
+LOAD DATA LOCAL INPATH 'data.tsv' INTO TABLE tbl0; 
+ 
+CREATE TABLE datos AS SELECT letra, clave, valor FROM (SELECT letra, c3 FROM tbl0 LATERAL VIEW explode(c2) tbl0 AS letra ) data
+LATERAL VIEW explode (c3) data; 
+INSERT OVERWRITE LOCAL DIRECTORY './output' 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' SELECT letra, clave, COUNT(1) FROM datos GROUP BY letra, clave ;

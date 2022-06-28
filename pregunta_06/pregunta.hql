@@ -45,25 +45,8 @@ LOAD DATA LOCAL INPATH 'data1.csv' INTO TABLE tbl1;
 /*
     >>> Escriba su respuesta a partir de este punto <<<
 */
-!hdfs dfs -rm -r -f /output;
-drop table if exists datos_final;
-
-CREATE TABLE datos_final
-AS
-    SELECT split(concat_ws(':',c5),',')
-    FROM(
-        SELECT
-            c1, COLLECT_LIST(UPPER(c5)) c5
-            FROM
-            tbl0 LATERAL VIEW explode(c5) tbl0 AS c5
-            GROUP BY C1
-        ) t0;
-
-
-INSERT OVERWRITE DIRECTORY '/output'
+INSERT OVERWRITE DIRECTORY 'output'
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-    SELECT * FROM datos_final;
-
-!hdfs dfs -copyToLocal /output output ;
+SELECT concat_ws(':',collect_list(UPPER(list))) FROM tbl0 LATERAL VIEW explode(c5) result AS list GROUP BY c1;
 
 
